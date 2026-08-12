@@ -1,0 +1,34 @@
+# foampatch yedekleri
+*.bak
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+
+# OpenFOAM case ciktilari
+[0-9]*/
+!0/
+!0.orig/
+processor*/
+postProcessing/
+constant/polyMesh/
+constant/extendedFeatureEdgeMesh/
+log.*
+*.OpenFOAM
+*.foam
+.fvSchemes.lock
+
+# Buyuk geometri dosyalari (ornek STL koyacaksan bu satiri kaldir)
+*.stl
+*.obj
+*.eMesh
+
+# Editor / OS
+.vscode/
+.idea/
+*~
+*.swp
+.DS_Store
+*Zone.Identifier
