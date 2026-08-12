@@ -1,0 +1,59 @@
+cases:
+- .
+vars:
+  U_inlet: uniform (10 0 0)
+  p_outlet: uniform 0
+  k_inlet: uniform 0.375
+  epsilon_inlet: uniform 0.0143
+  omega_inlet: uniform 2.6
+patches:
+  inlet:
+    role: inlet
+    stl: inlet.stl
+    in_blockmesh: false
+    level:
+    - 2
+    - 2
+    feature_level: 3
+  inlet1:
+    role: inlet
+    stl: inlet1.stl
+    in_blockmesh: false
+    level:
+    - 2
+    - 2
+    feature_level: 3
+  outlet:
+    role: outlet
+    stl: outlet.stl
+    in_blockmesh: false
+    level:
+    - 2
+    - 2
+    feature_level: 3
+  outlet1:
+    role: outlet
+    stl: outlet1.stl
+    in_blockmesh: false
+    level:
+    - 2
+    - 2
+    feature_level: 3
+  walls:
+    role: wall
+    stl: walls.stl
+    in_blockmesh: false
+    level:
+    - 3
+    - 4
+    feature_level: 4
+    layers: 3
+  walls1:
+    role: wall
+    stl: walls1.stl
+    in_blockmesh: false
+    level:
+    - 3
+    - 4
+    feature_level: 4
+    layers: 3

@@ -1,0 +1,11 @@
+cases:
+  - .
+
+vars:
+  U_inlet:       "uniform (10 0 0)"
+  p_outlet:      "uniform 0"
+  k_inlet:       "uniform 0.375"
+  epsilon_inlet: "uniform 0.0143"
+  omega_inlet:   "uniform 2.6"
+
+patches: {}
