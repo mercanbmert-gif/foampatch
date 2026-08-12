@@ -320,6 +320,39 @@ def discover_stls(case, stl_dir="constant/triSurface", rules=None):
     return found
 
 
+def detect_foam_style(case, txt=""):
+    """
+    snappyHexMeshDict geometry blogunun hangi bicimde yazilacagini belirler.
+      org : <patchAdi> { type triSurfaceMesh; file "x.stl"; }   OpenFOAM.org v7+
+      esi : <x.stl>    { type triSurfaceMesh; name <patchAdi>; } OpenFOAM.com / eski
+
+    Sirasiyla: ortam degiskeni -> feature dict -> dosya icerigi.
+    Dosya icerigi en son, cunku onu bu script yazmis olabilir.
+    """
+    # 1) WM_PROJECT_VERSION:  org -> "14", "11", "dev"   /  ESI -> "v2312", "2406"
+    ver = os.environ.get("WM_PROJECT_VERSION", "").strip()
+    if ver:
+        if ver == "dev" or (ver.isdigit() and int(ver) < 100):
+            return "org"
+        if ver.startswith("v") or (ver.isdigit() and int(ver) >= 1000):
+            return "esi"
+
+    # 2) hangi feature utility'sinin dict'i var
+    has_org = os.path.exists(os.path.join(case, "system", "surfaceFeaturesDict"))
+    has_esi = os.path.exists(os.path.join(case, "system", "surfaceFeatureExtractDict"))
+    if has_org and not has_esi:
+        return "org"
+    if has_esi and not has_org:
+        return "esi"
+
+    # 3) son care: mevcut dosya nasil yazilmis
+    if re.search(r'file\s+"[^"]+\.(stl|obj)"', txt, re.I):
+        return "org"
+    if re.search(r"^\s*[\w.]+\.(stl|obj)\s*$", txt, re.I | re.M):
+        return "esi"
+    return "org"
+
+
 def write_surface_feature_dict(case, patches, runner):
     """
     Feature extraction dict'ini uretir. Hangi surumdesin ona gore:
@@ -557,6 +590,13 @@ class Runner:
             self.log("    ! stl tanimli patch yok, atlandi")
             return
 
+        # --- geometry bicimini belirle ---
+        # OpenFOAM.org (v7+):  <patchAdi> { type triSurfaceMesh; file "x.stl"; }
+        # OpenFOAM.com / eski: <x.stl>    { type triSurfaceMesh; name <patchAdi>; }
+        style = snappy_cfg.get("geometry_style") or detect_foam_style(case, txt)
+        self.log(f"    i geometry bicimi: {style}"
+                 f"{'  (OpenFOAM.org)' if style == 'org' else '  (OpenFOAM.com/ESI)'}")
+
         # geometry
         blk = find_block(txt, "geometry")
         if blk:
@@ -564,10 +604,16 @@ class Runner:
             g = ["geometry", "{"]
             for name, cfg in stl_patches.items():
                 stl = cfg["stl"]
-                g.append(f"    {stl}")
-                g.append("    {")
-                g.append("        type    triSurfaceMesh;")
-                g.append(f"        name    {name};")
+                if style == "org":
+                    g.append(f"    {name}")
+                    g.append("    {")
+                    g.append("        type    triSurfaceMesh;")
+                    g.append(f'        file    "{stl}";')
+                else:
+                    g.append(f"    {stl}")
+                    g.append("    {")
+                    g.append("        type    triSurfaceMesh;")
+                    g.append(f"        name    {name};")
                 g.append("    }")
                 g.append("")
             for extra in (snappy_cfg.get("extra_geometry") or []):
